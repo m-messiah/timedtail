@@ -1,0 +1,28 @@
+package main
+
+var TIMESTAMP_TYPES = map[string]string{
+	"alertlog":         `^([STMWF][uoehra][neduit].*\s+\d\d\d\d)$`,
+	"baida":            `(\d+\/\w+\/\d{4}:\d\d:\d\d:\d\d\s[^\s]+)`,
+	"clck-error":       `\tts=(\d+)\t`,
+	"common":           `(?:^|\s)\[([^\]]+)\]`,
+	"crypta":           `^\[(\d{4}\/\d\d\/\d\d\s\d\d:\d\d:\d\d)`,
+	"duffman-http-log": `([0-9][0-9]:[0-9][0-9]:[0-9][0-9])`,
+	"gofetcher":        `(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d)`,
+	"handystats":       `^(\d+)\d\d\d\s`,
+	"imap":             `^\[\d{4}-\w+-\d{2} (\d\d:\d\d:\d\d\.\d{6})`,
+	"imap-timing":      `^\[\d{4}-\d{2}-\d{2} (\d\d:\d\d:\d\d\.\d{3})`,
+	"java":             `(\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d)`,
+	"lighttpd":         ` - \[([^\]]+)\]`,
+	"listenerlog":      `(\d+-\w+-\d+\s+\d+:\d+:\d+)`,
+	"loadlog":          `^[-\d]+\t(\d+)\t`,
+	"mongodb":          `^.*T([0-9\:]+)\..*`,
+	"mulcagate":        `\[.+?\s+(\d+:\d+:\d+)`,
+	"passagelog":       `^[^\t]+\t\d+\t\d+\t(\d+)\d{6}\t`,
+	"phantom":          `^\d+\s+(\d+-\d+-\d+\s+\d+:\d+:\d+)`,
+	"squid":            `^(\d+)\.`,
+	"statbox":          `^\[(.+? \d\d:\d\d:\d\d)`,
+	"syslog":           `(\w+\s+\d+\s+\d+:\d+:\d+)`,
+	"syslog-ng":        `^(\d+-\d+-\d+T\d+:\d+:\d+)\+\d+:\d+`,
+	"tskv":             `(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d)`,
+	"yplatform":        `^\[(\d+\/\w+\/\d{4}:\d\d:\d\d:\d\d)\s[^\s]+\]`,
+}
