@@ -59,7 +59,7 @@ func main() {
 	if *fromTime != 0 {
 		timeRightBorder = time.Unix(*fromTime, 0)
 	} else {
-		timeRightBorder = timeNow
+		timeRightBorder = timeNow.Round(time.Second)
 	}
 	timeLeftBorder := timeRightBorder.Add(-time.Duration(*deltaSeconds) * time.Second)
 
