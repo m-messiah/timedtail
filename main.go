@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"sync"
 	"time"
 )
 
-func assertFlagIsPositiveInt(value int64) {
+func AssertFlagIsPositiveInt(value int64) {
 	if value < 0 {
 		flag.Usage()
 	}
@@ -31,9 +32,9 @@ func main() {
 	if len(log_files) == 0 {
 		flag.Usage()
 	}
-	assertFlagIsPositiveInt(*deltaSeconds)
-	assertFlagIsPositiveInt(*fromTime)
-	assertFlagIsPositiveInt(*junkLines)
+	AssertFlagIsPositiveInt(*deltaSeconds)
+	AssertFlagIsPositiveInt(*fromTime)
+	AssertFlagIsPositiveInt(*junkLines)
 	if *timestampType != "common" && *timestampCustomRegex != "" {
 		flag.Usage()
 	}
@@ -62,18 +63,10 @@ func main() {
 	}
 	timeLeftBorder := timeRightBorder.Add(-time.Duration(*deltaSeconds) * time.Second)
 
+	var wg sync.WaitGroup
 	for _, log_file := range log_files {
-		fmt.Print(log_file, ",")
+		wg.Add(1)
+		go ReadFile(&wg, log_file, timestampRegex, timeLeftBorder, timeRightBorder, *junkLines)
 	}
-	fmt.Println("")
-	fmt.Println(timeNow)
-	fmt.Println(*deltaSeconds)
-	fmt.Println(*fromTime)
-	fmt.Println(*timestampType)
-	fmt.Println(*timestampCustomRegex)
-	fmt.Println(*junkLines)
-	fmt.Println(timestampRegex)
-	fmt.Println(timeRightBorder)
-	fmt.Println(timeLeftBorder)
-
+	wg.Wait()
 }
