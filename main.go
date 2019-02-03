@@ -66,7 +66,7 @@ func main() {
 	var wg sync.WaitGroup
 	for _, log_file := range log_files {
 		wg.Add(1)
-		go ReadFile(&wg, log_file, timestampRegex, timeLeftBorder, timeRightBorder, *junkLines)
+		go readFile(&wg, log_file, timestampRegex, timeLeftBorder, timeRightBorder, *junkLines)
 	}
 	wg.Wait()
 }
