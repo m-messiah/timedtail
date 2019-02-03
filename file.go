@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"github.com/araddon/dateparse"
 	"io"
 	"os"
@@ -11,24 +10,36 @@ import (
 	"time"
 )
 
+const (
+	CHUNK_SIZE int64 = 128 * 1024
+)
+
 func readFile(wg *sync.WaitGroup, log_file string, timestampRegex *regexp.Regexp, timeLeftBorder, timeRightBorder time.Time, junkLines int64) {
 	defer wg.Done()
 	fileHandler, err := os.Open(log_file)
 	if err != nil {
 		return
 	}
-	fmt.Println("parse", log_file, "from", timeLeftBorder, "to", timeRightBorder)
 	leftBorder := searchBorder(fileHandler, timestampRegex, timeLeftBorder, junkLines)
 	rightBorder := searchBorder(fileHandler, timestampRegex, timeRightBorder, junkLines)
-	fmt.Println("read", log_file, "from", leftBorder, "to", rightBorder)
 	_, err = fileHandler.Seek(leftBorder, 0)
 	if err != nil {
 		return
 	}
-	var line []byte
-	reader := bufio.NewReader(fileHandler)
-	line, err = reader.ReadBytes('\n')
-	fmt.Print(string(line))
+	chunk := make([]byte, CHUNK_SIZE)
+	remainBytes := rightBorder - leftBorder
+	for remainBytes > 0 {
+		portion, err := fileHandler.Read(chunk)
+		if err != nil {
+			break
+		}
+		readBytes := int64(portion)
+		if readBytes > remainBytes {
+			readBytes = remainBytes
+		}
+		os.Stdout.Write(chunk[:readBytes])
+		remainBytes -= readBytes
+	}
 }
 
 func parseTime(reader *bufio.Reader, timestampRegex *regexp.Regexp) (*time.Time, int64) {
