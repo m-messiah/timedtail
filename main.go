@@ -19,6 +19,12 @@ type TimeBorders struct {
 	to   time.Time
 }
 
+type TimeParams struct {
+	regex     *regexp.Regexp
+	borders   TimeBorders
+	junkLines int64
+}
+
 func AssertFlagIsPositiveInt(value int64) {
 	if value < 0 {
 		flag.Usage()
@@ -82,7 +88,7 @@ func main() {
 	timeBorders := getTimeBorders(fromTime, deltaSeconds)
 	partsChannel := make(chan FilePart)
 	for _, log_file := range log_files {
-		go searchFilePart(log_file, timestampRegex, timeBorders, *junkLines, partsChannel)
+		go searchFilePart(log_file, TimeParams{timestampRegex, timeBorders, *junkLines}, partsChannel)
 	}
 
 	for i := 0; i < len(log_files); i++ {
