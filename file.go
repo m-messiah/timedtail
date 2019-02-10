@@ -13,24 +13,24 @@ const (
 	CHUNK_SIZE int64 = 128 * 1024
 )
 
-func searchFileBorders(log_file string, timestampRegex *regexp.Regexp, timeLeftBorder, timeRightBorder time.Time, junkLines int64, partsChannel chan FilePart) {
+func searchFilePart(log_file string, timestampRegex *regexp.Regexp, timeBorders TimeBorders, junkLines int64, partsChannel chan FilePart) {
 	fileHandler, err := os.Open(log_file)
 	if err != nil {
 		partsChannel <- FilePart{nil, 0, 0}
 		return
 	}
-	leftBorder := searchBorder(fileHandler, timestampRegex, timeLeftBorder, junkLines)
-	rightBorder := searchBorder(fileHandler, timestampRegex, timeRightBorder, junkLines)
-	partsChannel <- FilePart{fileHandler, leftBorder, rightBorder}
+	from := searchOffset(fileHandler, timestampRegex, timeBorders.from, junkLines)
+	to := searchOffset(fileHandler, timestampRegex, timeBorders.to, junkLines)
+	partsChannel <- FilePart{fileHandler, from, to}
 }
 
 func readFile(filePart FilePart) {
-	_, err := filePart.fileHandler.Seek(filePart.leftBorder, 0)
+	_, err := filePart.fileHandler.Seek(filePart.from, 0)
 	if err != nil {
 		return
 	}
 	chunk := make([]byte, CHUNK_SIZE)
-	remainBytes := filePart.rightBorder - filePart.leftBorder
+	remainBytes := filePart.to - filePart.from
 	for remainBytes > 0 {
 		portion, err := filePart.fileHandler.Read(chunk)
 		if err != nil {
@@ -80,7 +80,7 @@ func parseLine(fileHandler *os.File, timestampRegex *regexp.Regexp, junkLines in
 	return curPos, curPosTime, curPos + line_len
 }
 
-func searchBorder(fileHandler *os.File, timestampRegex *regexp.Regexp, timeBorder time.Time, junkLines int64) int64 {
+func searchOffset(fileHandler *os.File, timestampRegex *regexp.Regexp, timeBorder time.Time, junkLines int64) int64 {
 	l := int64(0)
 	fileStat, err := fileHandler.Stat()
 	if err != nil {
