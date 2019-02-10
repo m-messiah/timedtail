@@ -19,6 +19,7 @@ var TIMESTAMP_TYPES = map[string]string{
 	"mulcagate":        `\[.+?\s+(\d+:\d+:\d+)`,
 	"passagelog":       `^[^\t]+\t\d+\t\d+\t(\d+)\d{6}\t`,
 	"phantom":          `^\d+\s+(\d+-\d+-\d+\s+\d+:\d+:\d+)`,
+	"postgres":         `(\d\d\d\d-\d\d-\d\d\ \d\d\:\d\d\:\d\d.\d\d\d\ MSK)`,
 	"squid":            `^(\d+)\.`,
 	"statbox":          `^\[(.+? \d\d:\d\d:\d\d)`,
 	"syslog":           `(\w+\s+\d+\s+\d+:\d+:\d+)`,

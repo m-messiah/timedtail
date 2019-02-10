@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"regexp"
-	"sync"
 	"time"
 )
 
@@ -14,22 +13,26 @@ const (
 	CHUNK_SIZE int64 = 128 * 1024
 )
 
-func readFile(wg *sync.WaitGroup, log_file string, timestampRegex *regexp.Regexp, timeLeftBorder, timeRightBorder time.Time, junkLines int64) {
-	defer wg.Done()
+func searchFileBorders(log_file string, timestampRegex *regexp.Regexp, timeLeftBorder, timeRightBorder time.Time, junkLines int64, partsChannel chan FilePart) {
 	fileHandler, err := os.Open(log_file)
 	if err != nil {
+		partsChannel <- FilePart{nil, 0, 0}
 		return
 	}
 	leftBorder := searchBorder(fileHandler, timestampRegex, timeLeftBorder, junkLines)
 	rightBorder := searchBorder(fileHandler, timestampRegex, timeRightBorder, junkLines)
-	_, err = fileHandler.Seek(leftBorder, 0)
+	partsChannel <- FilePart{fileHandler, leftBorder, rightBorder}
+}
+
+func readFile(filePart FilePart) {
+	_, err := filePart.fileHandler.Seek(filePart.leftBorder, 0)
 	if err != nil {
 		return
 	}
 	chunk := make([]byte, CHUNK_SIZE)
-	remainBytes := rightBorder - leftBorder
+	remainBytes := filePart.rightBorder - filePart.leftBorder
 	for remainBytes > 0 {
-		portion, err := fileHandler.Read(chunk)
+		portion, err := filePart.fileHandler.Read(chunk)
 		if err != nil {
 			break
 		}

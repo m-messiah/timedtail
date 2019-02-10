@@ -5,9 +5,14 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"sync"
 	"time"
 )
+
+type FilePart struct {
+	fileHandler *os.File
+	leftBorder  int64
+	rightBorder int64
+}
 
 func AssertFlagIsPositiveInt(value int64) {
 	if value < 0 {
@@ -63,10 +68,12 @@ func main() {
 	}
 	timeLeftBorder := timeRightBorder.Add(-time.Duration(*deltaSeconds) * time.Second)
 
-	var wg sync.WaitGroup
+	partsChannel := make(chan FilePart)
 	for _, log_file := range log_files {
-		wg.Add(1)
-		go readFile(&wg, log_file, timestampRegex, timeLeftBorder, timeRightBorder, *junkLines)
+		go searchFileBorders(log_file, timestampRegex, timeLeftBorder, timeRightBorder, *junkLines, partsChannel)
 	}
-	wg.Wait()
+
+	for i := 0; i < len(log_files); i++ {
+		readFile(<-partsChannel)
+	}
 }
