@@ -1,14 +1,22 @@
 language: go
 script:
-  - GOOS=linux  go build -o timedtail_linux
   - GOOS=darwin go build -o timedtail_mac
+  - GOOS=freebsd go build -o timedtail_freebsd
+  - GOOS=linux GOARCH=386 go build -o timedtail_linux32
+  - GOOS=linux GOARCH=amd64 go build -o timedtail_linux64
+  - GOOS=linux GOARCH=arm  go build -o timedtail_linux_arm
+  - GOOS=openbsd go build -o timedtail_openbsd
 deploy:
   provider: releases
   api_key:
     secure: VmTkblGZkrwJa6G8iK3a6G/VRvinGHaGI7qdq+u6aqB3vBrsP9T4sFUG+RcSy2/9vGf4BfugiTZG9g7ATh+r2FpPAJR4QUkSsU+Ru0dfs6WdcKXJ7PeRRi30+DwkPDmiU9dnsxkD5F2oktQ2m65nSWoRz560a9O2LkCVB7LBq4A2QVIMNqjkt7pp2m8FEzEjnU1qtcRWkfF74PVUT8vAA1v5oaQ6uQeczRhZLaFq9spn9eJ6y59r2TzrkwfHTWkTYstqzT/RMtvguJ21QU9D0pd/S5fKCdr1IXeCi7joYI9hzzTCaVzHf7hNkxT7vg4jk9RMO5KhjY7AZd+uI37mbLuj3QjNk0/wFvyv1Y7QL6lYlXeKLe01oyQt2oWLV4TzaSVPVfdc46/LCUcA+npPNengD8SX71eQTH7VMAbCoMTEXSJzgEm8OgoyG2Mv9um5Ye/pph9Titnq8muwZ26Lr9ExC+vMqzgMSGVpkMqiwbZZjMbjaLZQWzW3d38joajriKqjxVT/XTU+T7A+5T48CiBpBuC4oLm35Rq1/CMll6f0Nu+Rz+XW/4m4q+k3jhsqDkJJ3UWpiVLu/9ufhGz1Ys26JxY0Da9llfptW9xSPckOjlGybBiCuUwKfSRs8xAxp/DvW8D5WjGPRqKwXgSenJXtWOHRgTnUZDmHm/iZ3Qw=
   file:
-    - timedtail_linux
+    - timedtail_freebsd
+    - timedtail_linux32
+    - timedtail_linux64
+    - timedtail_linux_arm
     - timedtail_mac
+    - timedtail_openbsd
   skip_cleanup: true
   on:
     repo: m-messiah/timedtail
