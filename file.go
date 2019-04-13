@@ -10,26 +10,26 @@ import (
 )
 
 const (
-	CHUNK_SIZE int64 = 128 * 1024
+	chunkSize int64 = 128 * 1024
 )
 
-func searchFilePart(log_file string, timeParams TimeParams, partsChannel chan FilePart) {
-	fileHandler, err := os.Open(log_file)
+func searchFilePart(logFile string, timeParams timeParams, partsChannel chan filePart) {
+	fileHandler, err := os.Open(logFile)
 	if err != nil {
-		partsChannel <- FilePart{nil, 0, 0}
+		partsChannel <- filePart{nil, 0, 0}
 		return
 	}
 	from := searchOffset(fileHandler, timeParams, timeParams.borders.from)
 	to := searchOffset(fileHandler, timeParams, timeParams.borders.to)
-	partsChannel <- FilePart{fileHandler, from, to}
+	partsChannel <- filePart{fileHandler, from, to}
 }
 
-func readFile(filePart FilePart) {
+func readFile(filePart filePart) {
 	_, err := filePart.fileHandler.Seek(filePart.from, 0)
 	if err != nil {
 		return
 	}
-	chunk := make([]byte, CHUNK_SIZE)
+	chunk := make([]byte, chunkSize)
 	remainBytes := filePart.to - filePart.from
 	for remainBytes > 0 {
 		portion, err := filePart.fileHandler.Read(chunk)
@@ -47,40 +47,40 @@ func readFile(filePart FilePart) {
 
 func parseTime(reader *bufio.Reader, timestampRegex *regexp.Regexp) (*time.Time, int64) {
 	line, err := reader.ReadBytes('\n')
-	line_len := int64(len(line))
+	lineLen := int64(len(line))
 	if err != nil && err != io.EOF {
-		return nil, line_len
+		return nil, lineLen
 	}
 	timeMatch := timestampRegex.Find(line)
 	if timeMatch == nil {
-		return nil, line_len
+		return nil, lineLen
 	}
 	parsedTime, err := dateparse.ParseLocal(string(timeMatch))
 	if err != nil {
-		return nil, line_len
+		return nil, lineLen
 	}
-	return &parsedTime, line_len
+	return &parsedTime, lineLen
 }
 
-func parseLine(fileHandler *os.File, timeParams TimeParams, seek int64) (int64, *time.Time, int64) {
+func parseLine(fileHandler *os.File, timeParams timeParams, seek int64) (int64, *time.Time, int64) {
 	curPos, err := fileHandler.Seek(seek, 0)
 	if err != nil {
 		return seek, nil, seek
 	}
-	var line_len int64
+	var lineLen int64
 	var curPosTime *time.Time
 	reader := bufio.NewReader(fileHandler)
 	for skipLines := int64(0); skipLines < timeParams.junkLines; skipLines++ {
-		curPosTime, line_len = parseTime(reader, timeParams.regex)
+		curPosTime, lineLen = parseTime(reader, timeParams.regex)
 		if curPosTime != nil {
 			break
 		}
-		curPos += line_len
+		curPos += lineLen
 	}
-	return curPos, curPosTime, curPos + line_len
+	return curPos, curPosTime, curPos + lineLen
 }
 
-func searchOffset(fileHandler *os.File, timeParams TimeParams, timeBorder time.Time) int64 {
+func searchOffset(fileHandler *os.File, timeParams timeParams, timeBorder time.Time) int64 {
 	l := int64(0)
 	fileStat, err := fileHandler.Stat()
 	if err != nil {
@@ -89,7 +89,7 @@ func searchOffset(fileHandler *os.File, timeParams TimeParams, timeBorder time.T
 	fileSize := fileStat.Size()
 	r := fileSize
 	for l < r && l >= 0 && r <= fileSize {
-		curPos, curPosTime, line_end := parseLine(fileHandler, timeParams, (l+r)/2)
+		curPos, curPosTime, lineEnd := parseLine(fileHandler, timeParams, (l+r)/2)
 		if r == curPos {
 			if l == 0 {
 				return l
@@ -103,8 +103,8 @@ func searchOffset(fileHandler *os.File, timeParams TimeParams, timeBorder time.T
 				r = fileSize
 			}
 		} else {
-			if line_end <= fileSize {
-				l = line_end
+			if lineEnd <= fileSize {
+				l = lineEnd
 			} else {
 				l = fileSize
 			}

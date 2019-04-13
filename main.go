@@ -8,24 +8,24 @@ import (
 	"time"
 )
 
-type FilePart struct {
+type filePart struct {
 	fileHandler *os.File
 	from        int64
 	to          int64
 }
 
-type TimeBorders struct {
+type timeBorders struct {
 	from time.Time
 	to   time.Time
 }
 
-type TimeParams struct {
+type timeParams struct {
 	regex     *regexp.Regexp
-	borders   TimeBorders
+	borders   timeBorders
 	junkLines int64
 }
 
-func AssertFlagIsPositiveInt(value int64) {
+func assertFlagIsPositiveInt(value int64) {
 	if value < 0 {
 		flag.Usage()
 	}
@@ -36,12 +36,12 @@ func getTimeStampRegex(timestampCustomRegex *string, timestampType *string) *reg
 	if *timestampCustomRegex != "" {
 		timestampRegexString = *timestampCustomRegex
 	} else {
-		lookupRegexString, ok := TIMESTAMP_TYPES[*timestampType]
+		lookupRegexString, ok := TimestampTypes[*timestampType]
 		if ok {
 			timestampRegexString = lookupRegexString
 		} else {
 			fmt.Fprintf(os.Stderr, "Unkown type %s, possible values are: ", *timestampType)
-			for k := range TIMESTAMP_TYPES {
+			for k := range TimestampTypes {
 				fmt.Fprint(os.Stderr, k, " ")
 			}
 			fmt.Fprintln(os.Stderr, "")
@@ -51,7 +51,7 @@ func getTimeStampRegex(timestampCustomRegex *string, timestampType *string) *reg
 	return regexp.MustCompile(timestampRegexString)
 }
 
-func getTimeBorders(fromTime, deltaSeconds *int64) TimeBorders {
+func getTimeBorders(fromTime, deltaSeconds *int64) timeBorders {
 	var timeRightBorder time.Time
 	if *fromTime != 0 {
 		timeRightBorder = time.Unix(*fromTime, 0)
@@ -59,7 +59,7 @@ func getTimeBorders(fromTime, deltaSeconds *int64) TimeBorders {
 		timeRightBorder = time.Now().Round(time.Second)
 	}
 	timeLeftBorder := timeRightBorder.Add(-time.Duration(*deltaSeconds) * time.Second)
-	return TimeBorders{timeLeftBorder, timeRightBorder}
+	return timeBorders{timeLeftBorder, timeRightBorder}
 }
 
 func main() {
@@ -74,24 +74,24 @@ func main() {
 	timestampCustomRegex := flag.String("r", "", "Regexp to pick timestamp from string ($1 must select timestamp)")
 	junkLines := flag.Int64("j", 500, "Max number of junk lines to read")
 	flag.Parse()
-	log_files := flag.Args()
-	if len(log_files) == 0 {
+	logFiles := flag.Args()
+	if len(logFiles) == 0 {
 		flag.Usage()
 	}
-	AssertFlagIsPositiveInt(*deltaSeconds)
-	AssertFlagIsPositiveInt(*fromTime)
-	AssertFlagIsPositiveInt(*junkLines)
+	assertFlagIsPositiveInt(*deltaSeconds)
+	assertFlagIsPositiveInt(*fromTime)
+	assertFlagIsPositiveInt(*junkLines)
 	if *timestampType != "common" && *timestampCustomRegex != "" {
 		flag.Usage()
 	}
 	timestampRegex := getTimeStampRegex(timestampCustomRegex, timestampType)
-	timeBorders := getTimeBorders(fromTime, deltaSeconds)
-	partsChannel := make(chan FilePart)
-	for _, log_file := range log_files {
-		go searchFilePart(log_file, TimeParams{timestampRegex, timeBorders, *junkLines}, partsChannel)
+	timeBordersVal := getTimeBorders(fromTime, deltaSeconds)
+	partsChannel := make(chan filePart)
+	for _, logFile := range logFiles {
+		go searchFilePart(logFile, timeParams{timestampRegex, timeBordersVal, *junkLines}, partsChannel)
 	}
 
-	for i := 0; i < len(log_files); i++ {
+	for i := 0; i < len(logFiles); i++ {
 		readFile(<-partsChannel)
 	}
 }

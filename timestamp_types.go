@@ -1,6 +1,7 @@
 package main
 
-var TIMESTAMP_TYPES = map[string]string{
+// TimestampTypes - regexps for time formats
+var TimestampTypes = map[string]string{
 	"alertlog":         `^([STMWF][uoehra][neduit].*\s+\d\d\d\d)$`,
 	"baida":            `(\d+\/\w+\/\d{4}:\d\d:\d\d:\d\d\s[^\s]+)`,
 	"clck-error":       `\tts=(\d+)\t`,
