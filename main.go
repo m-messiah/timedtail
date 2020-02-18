@@ -73,6 +73,7 @@ func main() {
 	timestampType := flag.String("t", "common", "Timestamp type")
 	timestampCustomRegex := flag.String("r", "", "Regexp to pick timestamp from string ($1 must select timestamp)")
 	junkLines := flag.Int64("j", 500, "Max number of junk lines to read")
+	utcLogTime := flag.Bool("utc", false, "Enable UTC timezone for time parse")
 	flag.Parse()
 	logFiles := flag.Args()
 	if len(logFiles) == 0 {
@@ -86,6 +87,10 @@ func main() {
 	}
 	timestampRegex := getTimeStampRegex(timestampCustomRegex, timestampType)
 	timeBordersVal := getTimeBorders(fromTime, deltaSeconds)
+	if *utcLogTime {
+		utcLoc, _ := time.LoadLocation("UTC")
+		time.Local = utcLoc
+	}
 	partsChannel := make(chan filePart)
 	for _, logFile := range logFiles {
 		go searchFilePart(logFile, timeParams{timestampRegex, timeBordersVal, *junkLines}, partsChannel)

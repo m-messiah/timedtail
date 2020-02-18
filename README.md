@@ -20,6 +20,8 @@ Usage: timedtail [options] <log files>...
         Regexp to pick timestamp from string ($1 must select timestamp)
   -t string
         Timestamp type (default "common")
+  -utc
+        Parse timestamps as they are in UTC timezone, not local.
 ```
 
 ## Examples
